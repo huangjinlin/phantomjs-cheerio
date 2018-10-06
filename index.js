@@ -9,8 +9,7 @@ function setOptions(options) {
     interval = options.interval
   }
 }
-function queue(options) {
-  setOptions(options)
+function queue() {
   return new Promise((resolve, reject) => {
     const now = moment()
     if (now.isBefore(requestTime)) {
@@ -35,10 +34,28 @@ function requestPage(options) {
             // console.log('err', err)
             reject(err)
           } else {
-            body = JSON.parse(body)
-            // console.log('content', body.content)
-            const $ = cheerio.load(body.content)
-            resolve($)
+            let $
+            // console.log('body', body)
+            if (body.indexOf('<title>504 Gateway Time-out</title>')>-1) {
+              /*
+              <html>
+              <head><title>504 Gateway Time-out</title></head>
+              <body bgcolor="white">
+              <center><h1>504 Gateway Time-out</h1></center>
+              <hr><center>openresty/1.11.2.2</center>
+              </body>
+              </html>
+              */
+              reject({code: 504, message: 'time-out'})
+            }  else if (body.indexOf('<title>502 Bad Gateway</title>')>-1) {
+              reject({code: 502, message: 'bad gateway'})
+            }
+            else {
+              body = JSON.parse(body)
+              // console.log('content', body.content)
+              $ = cheerio.load(body.content)
+              resolve($)
+            }
           }
         })
     })
