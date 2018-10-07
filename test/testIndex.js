@@ -20,14 +20,12 @@ function testQueue() {
   })
 }
 function testRequestSame() {
-  pc.request({ url: 'http://m.ashvsash.com/category/%E7%94%B5%E5%BD%B1/page/411' }).then(($) => {
-
-  }, (data) => {
-    console.log('data', data)
-  })
-  pc.request({ url: 'http://m.ashvsash.com/category/%E7%94%B5%E5%BD%B1/page/410' }).then(($) => {
-  }, (data) => {
-    console.log('data', data)
+  ['411', '410', '409', '408', '407', '406'].forEach((t) => {
+    pc.request({ url: `http://m.ashvsash.com/category/%E7%94%B5%E5%BD%B1/page/${t}` }).then(($) => {
+      console.log('done', moment().format('HH:mm:ss'))
+    }, (data) => {
+      console.log('data', data)
+    })
   })
 }
 // testQueue()

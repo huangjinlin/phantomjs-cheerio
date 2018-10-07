@@ -4,9 +4,15 @@ const moment = require('moment')
 const serverUrl = 'https://mxavtj-3000-gchfab.studio.ide.live/request'
 let interval = 1
 let requestTime = moment()
+let poolSize = 2
+let currentPoolSize = 0
+let pool = []
 function setOptions(options) {
   if (options && options.interval) {
     interval = options.interval
+  }
+  if (options && options.poolSize) {
+    poolSize = options.poolSize
   }
 }
 function queue() {
@@ -24,10 +30,26 @@ function queue() {
     requestTime.add(interval, 's')
   })
 }
-function requestPage(options) {
-  setOptions(options)
-  return new Promise((resolve, reject) => {
+function inPool(cb) {
+  pool.push(cb)
+  outPool()
+}
+function outPool() {
+  if (pool.length > 0 && currentPoolSize > -1 && currentPoolSize < poolSize) {
+    let cb = pool.shift()
+    currentPoolSize += 1
+    // console.log('outPool')
+    // console.log('currentPoolSize', currentPoolSize)
+    // console.log('time', moment().format('HH:mm:ss'))
     queue().then(() => {
+      cb()
+    })
+  }
+}
+function requestPage(options) {
+  let p =   new Promise((resolve, reject) => {
+    inPool(() => {
+      console.log('requet', moment().format('HH:mm:ss'))
       request
         .post(serverUrl, { form: { url: options.url } }, (err, response, body) => {
           if (err) {
@@ -60,9 +82,18 @@ function requestPage(options) {
         })
     })
   })
+  p.then(() => {
+    currentPoolSize -= 1
+    // console.log('done')
+    // console.log('currentPoolSize', currentPoolSize)
+    // console.log('time', moment().format('HH:mm:ss'))
+    outPool()
+  })
+  return p
 }
 const obj = {
   queue: queue,
-  request: requestPage
+  request: requestPage,
+  setOptions: setOptions
 }
 module.exports = obj;
