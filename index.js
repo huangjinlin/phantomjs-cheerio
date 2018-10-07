@@ -4,7 +4,7 @@ const moment = require('moment')
 const serverUrl = 'https://mxavtj-3000-gchfab.studio.ide.live/request'
 let interval = 1
 let requestTime = moment()
-let poolSize = 2
+let poolSize = 1
 let currentPoolSize = 0
 let pool = []
 function setOptions(options) {
@@ -49,7 +49,7 @@ function outPool() {
 function requestPage(options) {
   let p =   new Promise((resolve, reject) => {
     inPool(() => {
-      console.log('requet', moment().format('HH:mm:ss'))
+      // console.log('requet', moment().format('HH:mm:ss'))
       request
         .post(serverUrl, { form: { url: options.url } }, (err, response, body) => {
           if (err) {
